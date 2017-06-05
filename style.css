@@ -1,0 +1,12 @@
+body {
+	background: #b4b4b4;
+}
+
+
+img {
+	max-width: 300px;
+}
+
+li {
+	cursor: pointer;
+}
