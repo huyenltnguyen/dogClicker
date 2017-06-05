@@ -1,9 +1,7 @@
-let li = document.getElementsByTagName("li");
-let name = document.querySelector("#name");
-let counter = document.querySelector("#counter");
-let img = document.querySelector("img");
-let dogInfo;
-let dogList = [
+//----------- MODEL --------------//
+let model = {
+	currentDog:  null,
+	dogList: [
 				{
 					name: "Fido",
 					img: "http://www.pawderosa.com/images/puppies.jpg",
@@ -32,34 +30,103 @@ let dogList = [
 					name: "Cody",
 					img: "https://puppydogweb.com/wp-content/uploads/2015/05/husky-puppy-18220-1920x1200.jpg",
 					count: 0
-				},
-				];
+				}
+				]
+
+};
 
 
-for (let i = 0; i <  li.length; i++) {
-	li[i].addEventListener("click", function() {
-		dogInfo = findDogInfo(li[i].innerText);
-		displayDogInfo(dogInfo.name, dogInfo.count, dogInfo.img);
-	})
+//-------- OCTOPUS ---------//
+let octopus = {
+	init: function() {
+		// set the current dog to the first one in the list
+		model.currentDog = model.dogList[0];
+
+		// tell the views to initialize
+		dogListView.init();
+		dogView.init();
+	},
+
+	getDogList: function() {
+		return model.dogList;
+	},
+
+	getCurrentDog: function() {
+		return model.currentDog;
+	},
+
+	// set the currently-selected dog to the object passed in
+	setCurrentDog: function(chosenDog) {
+		model.currentDog = chosenDog;
+	},
+
+	// increments the counter for the currently-selected dog
+	increaseCounter: function() {
+		model.currentDog.count++;
+		dogView.render();
+	}
+};
+
+//--------- DOG VIEW -----------//
+let dogView = {
+	init: function() {
+		// store pointers to our DOM elements for easy access later		
+		this.name = document.querySelector("#name");
+		this.counter = document.querySelector("#counter");
+		this.img = document.querySelector("img");
+
+		// on click, increment the current dog's counter
+		this.img.addEventListener("click", function() {
+			octopus.increaseCounter();
+		});
+
+		// render this view (update the DOM elements with the right values)
+		this.render();
+	},	
+
+	render: function() {
+		// update the DOM elements with values from the current dog
+		let currentDog = octopus.getCurrentDog();
+		this.name.innerText = currentDog.name;
+		this.counter.innerText = "Click count: " + currentDog.count;
+		this.img.setAttribute("src", currentDog.img);
+	}
+
+};
+
+//--------- DOG LIST VIEW ----------//
+let dogListView = {
+	init: function() {
+		// store the DOM element for easy access later
+		this.li = document.getElementsByTagName("li");
+
+		// render this view (update the DOM elements with the right values)
+		this.render();
+	},
+
+	render: function() {
+		// get the dogList via octopus
+		let dogList = octopus.getDogList();
+
+		for (let i = 0; i < this.li.length; i++) {
+			this.li[i].addEventListener("click", function() {
+				let item = this;	// set the clicked list item as 'item'
+
+				// check the dogList and return the first (also only) object that has the 'name' property matches the name of the clicked list item
+				let chosenDog = dogList.filter(function(elem) {
+								if (elem.name === item.innerText) {
+									return elem;
+								}
+							})[0];
+
+				// call octopus to set the clicked item to be the current dog
+				// and display the name, image and clicks of the new current dog
+				octopus.setCurrentDog(chosenDog);
+				dogView.render();
+			});
+		};
+	}
 }
 
-
-img.addEventListener("click", function() {
-	dogInfo.count++;
-	counter.innerText = "Clicks count: " + dogInfo.count;
-});
-
-
-function findDogInfo(dogName) {
-	return dogList.filter(function(elem) {
-		if (elem.name === dogName) {
-			return elem;
-		}
-	})[0];
-}
-
-function displayDogInfo(dogName, clicksCount, dogImg) {
-	name.innerText = dogName;
-	counter.innerText = "Clicks count: " + clicksCount;
-	img.setAttribute("src", dogImg);
-}
+// run the app
+octopus.init();
